@@ -84,6 +84,23 @@ textarea{width:100%;background:#0f0616;color:var(--txt);border:1px solid var(--l
 .adm .sq{width:72px;padding:6px 8px;font-size:14px}
 .adm .ck{display:flex;gap:4px;align-items:center;margin:0;color:var(--txt);font-size:14px}
 .adm .ck input{width:20px;height:20px;accent-color:var(--mag)}
+.datebtn{width:100%;text-align:left;background:#0f0616;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;cursor:pointer}
+.datebtn.empty{color:var(--sub)}
+.datebtn::after{content:'📅';float:right}
+.timesel{display:flex;gap:6px;align-items:center}
+.timesel select{width:auto;flex:1}
+.dp-ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.dp{background:var(--card);border:1px solid var(--mag);border-radius:16px;padding:14px;width:100%;max-width:360px}
+.dp-h{display:flex;align-items:center;gap:4px;margin-bottom:10px}
+.dp-h b{flex:1;text-align:center;font-size:17px}
+.dp-h button,.dp-f button{background:#0f0616;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+.dp-w,.dp-g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.dp-w span{font-size:12px;color:var(--sub)}
+.dp-g button{aspect-ratio:1;border:0;border-radius:8px;background:#0f0616;color:var(--txt);font:inherit;cursor:pointer}
+.dp-g button.today{outline:1px solid var(--mag)}
+.dp-g button.sel{background:var(--mag);color:#fff;font-weight:700}
+.dp-f{display:flex;gap:6px;margin-top:10px}
+.dp-f button{flex:1}
 </style>
 </head>
 <body>
@@ -517,6 +534,69 @@ async function renderEventEdit(){
   };
   draw();
 }
+
+// ===================== ตัวเลือกวันที่ / เวลา (แทน input date/time ของเครื่อง) =====================
+const pad2 = n => String(n).padStart(2,'0');
+const MONTHS_FULL = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function todayYmd(){ const d = new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function fire(el){ el.dispatchEvent(new Event('change', {bubbles:true})); el.dispatchEvent(new Event('input', {bubbles:true})); }
+
+function openDatePicker(input, btn){
+  let cur = input.value || todayYmd();
+  let [y, m] = cur.split('-').map(Number);
+  const ov = document.createElement('div'); ov.className = 'dp-ov';
+  const draw = () => {
+    const first = new Date(y, m-1, 1).getDay(), days = new Date(y, m, 0).getDate(), t = todayYmd();
+    let cells = '';
+    for (let i = 0; i < first; i++) cells += '<span></span>';
+    for (let d = 1; d <= days; d++) {
+      const v = y+'-'+pad2(m)+'-'+pad2(d);
+      cells += `<button type="button" data-d="${v}" class="${v===input.value?'sel':''} ${v===t?'today':''}">${d}</button>`;
+    }
+    ov.innerHTML = `<div class="dp">
+      <div class="dp-h"><button type="button" data-nav="-12">«</button><button type="button" data-nav="-1">‹</button>
+        <b>${MONTHS_FULL[m-1]} ${y+543}</b>
+        <button type="button" data-nav="1">›</button><button type="button" data-nav="12">»</button></div>
+      <div class="dp-w">${DAYS.map(x=>`<span>${x}</span>`).join('')}</div>
+      <div class="dp-g">${cells}</div>
+      <div class="dp-f"><button type="button" data-act="today">วันนี้</button><button type="button" data-act="clear">ล้าง</button><button type="button" data-act="close">ปิด</button></div></div>`;
+  };
+  const set = v => { input.value = v; btn.textContent = v ? thd(v, true) : 'แตะเพื่อเลือกวันที่'; btn.classList.toggle('empty', !v); fire(input); ov.remove(); };
+  ov.onclick = e => {
+    const b = e.target.closest('button');
+    if (e.target === ov) return ov.remove();
+    if (!b) return;
+    if (b.dataset.d) return set(b.dataset.d);
+    if (b.dataset.nav) { const n = Number(b.dataset.nav); m += n; while (m > 12) { m -= 12; y++; } while (m < 1) { m += 12; y--; } return draw(); }
+    if (b.dataset.act === 'today') return set(todayYmd());
+    if (b.dataset.act === 'clear') return set('');
+    ov.remove();
+  };
+  draw(); document.body.appendChild(ov);
+}
+
+function enhanceInputs(root){
+  root.querySelectorAll('input[type=date]:not([data-enh])').forEach(inp => {
+    inp.dataset.enh = '1'; inp.type = 'hidden';
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'datebtn' + (inp.value ? '' : ' empty');
+    btn.textContent = inp.value ? thd(inp.value, true) : 'แตะเพื่อเลือกวันที่';
+    btn.onclick = () => openDatePicker(inp, btn);
+    inp.after(btn);
+  });
+  root.querySelectorAll('input[type=time]:not([data-enh])').forEach(inp => {
+    inp.dataset.enh = '1'; inp.type = 'hidden';
+    const [h, mi] = (inp.value || ':').split(':');
+    const wrap = document.createElement('div'); wrap.className = 'timesel';
+    const hs = document.createElement('select'), ms = document.createElement('select');
+    hs.innerHTML = '<option value="">ชั่วโมง</option>' + [...Array(24).keys()].map(x=>`<option ${pad2(x)===h?'selected':''}>${pad2(x)}</option>`).join('');
+    ms.innerHTML = ['00','15','30','45'].concat(mi && !['00','15','30','45'].includes(mi) ? [mi] : []).map(x=>`<option ${x===(mi||'00')?'selected':''}>${x}</option>`).join('');
+    const upd = () => { inp.value = hs.value ? hs.value + ':' + ms.value : ''; fire(inp); };
+    hs.onchange = upd; ms.onchange = upd;
+    wrap.append(hs, document.createTextNode(':'), ms, document.createTextNode(' น.'));
+    inp.after(wrap);
+  });
+}
+new MutationObserver(() => enhanceInputs(app)).observe(app, {childList: true, subtree: true});
 
 boot();
 </script>
