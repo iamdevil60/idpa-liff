@@ -468,6 +468,7 @@ async function renderEvent(){
     <button class="btn danger" id="toggle">${active?'ยกเลิกรายการนี้':'เปิดรายการนี้อีกครั้ง'}</button></div>` : ''}`;
 
   const flash = (t, ok) => { $('#m').innerHTML = msg(ok?'ok':'err', t); scrollTo(0,0); };
+  if (window.flashMsg) { $('#m').innerHTML = window.flashMsg; window.flashMsg = null; }
   app.querySelectorAll('[data-st]').forEach(b => b.onclick = async () => {
     app.querySelectorAll('[data-st]').forEach(x => x.disabled = true);
     try { await api('setParticipation', {eventId: e.id, status: b.dataset.st}); renderEvent(); }
@@ -508,6 +509,7 @@ async function renderEventEdit(){
     app.innerHTML = `<div class="center"><div class="spin"></div></div>`;
     try { e = Object.assign(e, (await api('getEvent', {id})).event); } catch (err) { app.innerHTML = msg('err', err.message); return; }
   }
+  let announce = !id;
   const draw = () => {
     const m = e.type === 'match';
     app.innerHTML = `<a class="back" onclick="go('${id?'event&id='+id:'calendar'}')">‹ กลับ</a><h2>${id?'แก้ไขรายการ':'เพิ่มรายการ'}</h2><div id="m"></div>
@@ -522,13 +524,21 @@ async function renderEventEdit(){
       <label>ปิดรับสมัคร</label><input type="date" data-k="registration_deadline" value="${esc(e.registration_deadline)}">
       <label>ลิงก์ PractiScore</label><input data-k="practiscore_url" value="${esc(e.practiscore_url)}" placeholder="https://practiscore.com/...">`:''}
       <label>รายละเอียด</label><textarea data-k="notes" rows="3" placeholder="ค่าสมัคร, จำนวนนัด, สิ่งที่ต้องเตรียม">${esc(e.notes)}</textarea>
+      <label class="check" style="border:0;margin-top:10px"><input type="checkbox" id="announce" ${announce?'checked':''}>
+        <span>ประกาศเข้ากลุ่ม LINE ทันทีหลังบันทึก<small>มีปุ่มให้สมาชิกกด${m?'สนใจ / สมัครแล้ว':'ไป / ไม่ไป'}ในกลุ่ม · ใช้โควตาเท่าจำนวนคนในกลุ่ม</small></span></label>
     </div><button class="btn" id="save">บันทึก</button>`;
+    $('#announce').onchange = ev2 => announce = ev2.target.checked;
     app.querySelectorAll('[data-k]').forEach(i => i.oninput = i.onchange = () => e[i.dataset.k] = i.value);
     app.querySelectorAll('[data-type]').forEach(b => b.onclick = () => { e.type = b.dataset.type; draw(); });
     $('#save').onclick = async () => {
       if (!e.title.trim() || !e.date_start) { $('#m').innerHTML = msg('err','กรุณากรอกชื่อรายการและวันที่'); return; }
       $('#save').disabled = true; $('#save').textContent = 'กำลังบันทึก…';
-      try { const r = await api('saveEvent', {event: Object.assign({}, e, {id})}); go('event&id=' + r.id); }
+      try {
+        const r = await api('saveEvent', {event: Object.assign({}, e, {id}), announce});
+        if (r.announced) window.flashMsg = msg('ok','บันทึกและประกาศเข้ากลุ่มแล้ว');
+        else if (r.announceError) window.flashMsg = msg('err','บันทึกแล้ว แต่ประกาศเข้ากลุ่มไม่สำเร็จ: ' + r.announceError);
+        go('event&id=' + r.id);
+      }
       catch (err) { $('#m').innerHTML = msg('err', err.message); $('#save').disabled = false; $('#save').textContent = 'บันทึก'; scrollTo(0,0); }
     };
   };
