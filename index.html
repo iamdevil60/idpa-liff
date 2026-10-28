@@ -63,7 +63,8 @@ td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:
 .mem .info small{color:var(--sub);display:block}
 .mem select{width:auto;padding:6px 8px;font-size:14px}
 .inactive{opacity:.45}
-.itemrow{display:grid;grid-template-columns:1fr 34px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.itemrow{display:grid;grid-template-columns:28px 1fr 34px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.itemrow .tick{width:26px;height:26px;padding:0;accent-color:var(--mag)}
 .itemrow .x{background:none;border:0;color:var(--bad);font-size:24px;cursor:pointer}
 .muted{color:var(--sub);font-size:13px}
 </style>
@@ -299,18 +300,25 @@ async function renderAdminEquipment(){
 
 let items = null;
 function renderAdminSettings(){
-  if (!items) items = S.items.map(i => Object.assign({}, i));
+  if (!items) items = S.items.map(i => Object.assign({has: !!S.equipment[i.id]}, i));
   app.innerHTML = `<h2>ตั้งค่ารายการอุปกรณ์</h2>${adminTabs('admin-settings')}<div id="m"></div>
-  <div class="card"><p class="muted" style="margin-top:0">รายการอุปกรณ์ที่สมาชิกทุกคนต้องติ๊กว่ามีหรือไม่ แก้ชื่อได้ กด × เพื่อลบ</p>
-  ${items.map((it,i)=> it._delete ? '' : `<div class="itemrow"><input data-i="${i}" data-k="name" value="${esc(it.name)}" placeholder="ชื่ออุปกรณ์">
+  <div class="card"><p class="muted" style="margin-top:0">ติ๊ก ☑ = คุณมีแล้ว ไม่ติ๊ก = ยังไม่มี<br>แก้ชื่อได้ในช่อง กด × เพื่อลบรายการ (รายการนี้ใช้กับสมาชิกทุกคน)</p>
+  ${items.map((it,i)=> it._delete ? '' : `<div class="itemrow"><input type="checkbox" class="tick" data-i="${i}" data-k="has" ${it.has?'checked':''} title="มีแล้ว"><input data-i="${i}" data-k="name" value="${esc(it.name)}" placeholder="ชื่ออุปกรณ์">
     <button class="x" title="ลบ" onclick="items[${i}]._delete=true;renderAdminSettings()">×</button></div>`).join('')}
-  <button class="btn ghost" onclick="items.push({name:''});renderAdminSettings()">+ เพิ่มรายการ</button></div>
+  <button class="btn ghost" onclick="items.push({name:'',has:false});renderAdminSettings()">+ เพิ่มรายการ</button></div>
   <button class="btn" id="save">บันทึก</button>`;
   app.querySelectorAll('[data-k]').forEach(el => el.oninput = el.onchange = e => {
     const t = e.target; items[t.dataset.i][t.dataset.k] = t.type === 'checkbox' ? t.checked : t.value; });
   $('#save').onclick = async () => {
     loading();
-    try { const r = await api('saveEquipmentItems', {items}); S.items = r.items; items = null;
+    try { const r = await api('saveEquipmentItems', {items});
+      const eq = {};
+      items.filter(it => !it._delete && String(it.name||'').trim()).forEach(it => {
+        const id = it.id || (r.items.find(x => x.name === String(it.name).trim()) || {}).id;
+        if (id) eq[id] = !!it.has;
+      });
+      await api('saveEquipment', {equipment: eq});
+      S.items = r.items; items = null;
       S = Object.assign(S, await api('bootstrap')); renderAdminSettings(); $('#m').innerHTML = msg('ok','บันทึกแล้ว'); }
     catch (e) { renderAdminSettings(); $('#m').innerHTML = msg('err', e.message); }
   };
