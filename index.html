@@ -63,8 +63,8 @@ td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:
 .mem .info small{color:var(--sub);display:block}
 .mem select{width:auto;padding:6px 8px;font-size:14px}
 .inactive{opacity:.45}
-.itemrow{display:grid;grid-template-columns:1fr 92px 34px;gap:8px;align-items:end;padding:10px 0;border-bottom:1px solid var(--line)}
-.itemrow .x{background:none;border:0;color:var(--bad);font-size:22px;padding-bottom:8px;cursor:pointer}
+.itemrow{display:grid;grid-template-columns:1fr 34px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.itemrow .x{background:none;border:0;color:var(--bad);font-size:24px;cursor:pointer}
 .muted{color:var(--sub);font-size:13px}
 </style>
 </head>
@@ -233,9 +233,9 @@ function tabsMine(on){
 
 function equipmentList(){
   const mine = S.items.filter(i => S.myItems.includes(i.id));
-  if (!mine.length) return msg('info','เลือก Division หลัก หรือเพิ่มปืนก่อน ระบบจะแสดงอุปกรณ์ที่ต้องใช้ตาม Division');
+  if (!mine.length) return msg('info','ยังไม่มีรายการอุปกรณ์ ให้ Admin เพิ่มที่หน้าตั้งค่าอุปกรณ์');
   return `<div class="card">${mine.map(i => `<label class="check"><input type="checkbox" data-item="${i.id}" ${S.equipment[i.id]?'checked':''}>
-    <span>${esc(i.name)}${i.required?'<span class="tag req">จำเป็น</span>':'<span class="tag">แนะนำ</span>'}</span></label>`).join('')}</div>`;
+    <span>${esc(i.name)}</span></label>`).join('')}</div>`;
 }
 async function saveEquip(after){
   const eq = {};
@@ -253,7 +253,7 @@ function renderEquipment(){
 function renderEquipmentOnly(){
   if (!S.role) { go('profile'); return; }
   app.innerHTML = `<h2>เช็คลิสต์อุปกรณ์</h2><div id="m"></div>
-  <p class="muted">Division: ${esc([S.me.division, ...(S.firearms||[]).map(f=>f.division)].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ') || '-')}</p>
+  <p class="muted">ติ๊กรายการที่คุณมีแล้ว ไม่ติ๊ก = ยังไม่มี</p>
   ${equipmentList()}<button class="btn" id="save">บันทึก</button>`;
   $('#save').onclick = () => saveEquip(err => { renderEquipmentOnly(); $('#m').innerHTML = err ? msg('err', err.message) : msg('ok','บันทึกแล้ว'); });
 }
@@ -289,11 +289,11 @@ async function renderAdminEquipment(){
     const r = await api('adminEquipmentSummary');
     const short = n => n.length > 10 ? n.slice(0, 9) + '…' : n;
     const missing = r.rows.filter(x => x.missing.length);
-    $('#sum').innerHTML = `<p class="muted" style="margin-top:0">อุปกรณ์จำเป็นครบ ${r.rows.length - missing.length} / ${r.rows.length} คน</p>
+    $('#sum').innerHTML = `<p class="muted" style="margin-top:0">อุปกรณ์ครบ ${r.rows.length - missing.length} / ${r.rows.length} คน</p>
       <div class="tbl"><table><tr><th>สมาชิก</th>${r.items.map(i=>`<th title="${esc(i.name)}">${esc(short(i.name))}</th>`).join('')}</tr>
-      ${r.rows.map(x=>`<tr><td><b>${esc(x.name)}</b> <span class="muted">${esc(x.division||'')}</span></td>${r.items.map(i=> i.id in x.status ? (x.status[i.id]?'<td class="yes">✓</td>':`<td class="no">${i.required?'✗':'–'}</td>`) : '<td class="na">·</td>').join('')}</tr>`).join('')}
+      ${r.rows.map(x=>`<tr><td><b>${esc(x.name)}</b> <span class="muted">${esc(x.division||'')}</span></td>${r.items.map(i=> i.id in x.status ? (x.status[i.id]?'<td class="yes">✓</td>':'<td class="no">✗</td>') : '<td class="na">·</td>').join('')}</tr>`).join('')}
       </table></div>
-      ${missing.length?`<h3>ขาดอุปกรณ์จำเป็น</h3>${missing.map(x=>`<p style="margin:4px 0"><b>${esc(x.name)}:</b> <span class="muted">${esc(x.missing.join(', '))}</span></p>`).join('')}`:'<p class="yes">ทุกคนมีอุปกรณ์จำเป็นครบ</p>'}`;
+      ${missing.length?`<h3>ยังขาดอุปกรณ์</h3>${missing.map(x=>`<p style="margin:4px 0"><b>${esc(x.name)}:</b> <span class="muted">${esc(x.missing.join(', '))}</span></p>`).join('')}`:'<p class="yes">ทุกคนมีอุปกรณ์ครบ</p>'}`;
   } catch (e) { $('#sum').innerHTML = msg('err', e.message); }
 }
 
@@ -301,12 +301,10 @@ let items = null;
 function renderAdminSettings(){
   if (!items) items = S.items.map(i => Object.assign({}, i));
   app.innerHTML = `<h2>ตั้งค่ารายการอุปกรณ์</h2>${adminTabs('admin-settings')}<div id="m"></div>
-  <div class="card"><p class="muted" style="margin-top:0">Division: ใส่ ALL หรือคั่นด้วย , เช่น SSP,ESP,CCP<br>รายการที่มี: ${esc(S.divisions.join(', '))}</p>
-  ${items.map((it,i)=> it._delete ? '' : `<div class="itemrow"><div><label>ชื่ออุปกรณ์</label><input data-i="${i}" data-k="name" value="${esc(it.name)}">
-    <label>Division</label><input data-i="${i}" data-k="divisions" value="${esc(it.divisions||'ALL')}"></div>
-    <div><label class="check" style="border:0;padding:0;font-size:14px"><input type="checkbox" data-i="${i}" data-k="required" ${it.required?'checked':''}>จำเป็น</label></div>
+  <div class="card"><p class="muted" style="margin-top:0">รายการอุปกรณ์ที่สมาชิกทุกคนต้องติ๊กว่ามีหรือไม่ แก้ชื่อได้ กด × เพื่อลบ</p>
+  ${items.map((it,i)=> it._delete ? '' : `<div class="itemrow"><input data-i="${i}" data-k="name" value="${esc(it.name)}" placeholder="ชื่ออุปกรณ์">
     <button class="x" title="ลบ" onclick="items[${i}]._delete=true;renderAdminSettings()">×</button></div>`).join('')}
-  <button class="btn ghost" onclick="items.push({name:'',divisions:'ALL',required:true});renderAdminSettings()">+ เพิ่มรายการ</button></div>
+  <button class="btn ghost" onclick="items.push({name:''});renderAdminSettings()">+ เพิ่มรายการ</button></div>
   <button class="btn" id="save">บันทึก</button>`;
   app.querySelectorAll('[data-k]').forEach(el => el.oninput = el.onchange = e => {
     const t = e.target; items[t.dataset.i][t.dataset.k] = t.type === 'checkbox' ? t.checked : t.value; });
