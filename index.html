@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TCSD1 Shooting Team</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+:root{--bg:#0a0310;--card:#170a20;--line:#3a1a4a;--mag:#c828ff;--mag2:#8e1bc0;--txt:#f3eef7;--sub:#b9a6c6;--ok:#3ddc84;--bad:#ff5c7a;--warn:#ffc94d}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:Sarabun,system-ui,sans-serif;font-size:16px;line-height:1.5}
+header{position:sticky;top:0;z-index:5;background:linear-gradient(90deg,#1a0526,#2b0a3d);border-bottom:2px solid var(--mag);padding:12px 16px;display:flex;align-items:center;gap:10px}
+header b{font-size:18px;letter-spacing:.3px}
+header .role{margin-left:auto;font-size:12px;background:var(--mag);color:#fff;border-radius:999px;padding:2px 10px}
+main{max-width:720px;margin:0 auto;padding:16px 16px 96px}
+h2{font-size:20px;margin:8px 0 12px}
+h3{font-size:16px;margin:18px 0 8px;color:var(--mag)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+label{display:block;font-size:14px;color:var(--sub);margin:10px 0 4px}
+label .req{color:var(--mag)}
+input,select{width:100%;background:#0f0616;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit}
+input:focus,select:focus{outline:2px solid var(--mag);border-color:transparent}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+@media(max-width:420px){.row{grid-template-columns:1fr}}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font:inherit;font-weight:700;font-size:17px;cursor:pointer;background:var(--mag);color:#fff;margin-top:12px}
+.btn.ghost{background:transparent;border:1px solid var(--mag);color:var(--mag)}
+.btn.danger{background:transparent;border:1px solid var(--bad);color:var(--bad)}
+.btn.small{display:inline-block;width:auto;padding:8px 14px;font-size:14px;margin:0}
+.btn:disabled{opacity:.5}
+.steps{display:flex;gap:6px;margin-bottom:14px}
+.steps span{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.steps span.on{background:var(--mag)}
+.consent{max-height:46vh;overflow:auto;font-size:14px;color:var(--sub);border:1px solid var(--line);border-radius:10px;padding:12px;background:#0f0616}
+.consent b{color:var(--txt)}
+.check{display:flex;gap:12px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line);font-size:16px;color:var(--txt);margin:0}
+.check:last-child{border-bottom:0}
+.check input{width:24px;height:24px;flex:none;accent-color:var(--mag)}
+.check small{color:var(--sub);display:block}
+.tag{font-size:11px;border-radius:6px;padding:1px 6px;margin-left:6px;border:1px solid var(--line);color:var(--sub)}
+.tag.req{border-color:var(--mag);color:var(--mag)}
+.gun{position:relative}
+.gun .x{position:absolute;top:10px;right:10px;background:none;border:0;color:var(--bad);font-size:22px;cursor:pointer}
+.msg{padding:12px;border-radius:10px;margin-bottom:12px;font-size:15px}
+.msg.ok{background:#0f2b1c;color:var(--ok)}.msg.err{background:#2e0c15;color:var(--bad)}.msg.info{background:#22102e;color:var(--sub)}
+.center{text-align:center;padding:60px 0;color:var(--sub)}
+.spin{width:36px;height:36px;border:4px solid var(--line);border-top-color:var(--mag);border-radius:50%;animation:s 1s linear infinite;margin:0 auto 12px}
+@keyframes s{to{transform:rotate(360deg)}}
+.tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto}
+.tabs a{flex:none;padding:8px 14px;border-radius:999px;border:1px solid var(--line);color:var(--sub);text-decoration:none;font-size:14px}
+.tabs a.on{background:var(--mag);border-color:var(--mag);color:#fff}
+.tbl{width:100%;overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:center;white-space:nowrap}
+th{color:var(--sub);font-weight:600}
+td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+.yes{color:var(--ok)}.no{color:var(--bad)}.na{color:#5a4866}
+.mem{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.mem:last-child{border-bottom:0}
+.mem .info{flex:1;min-width:0}
+.mem .info small{color:var(--sub);display:block}
+.mem select{width:auto;padding:6px 8px;font-size:14px}
+.inactive{opacity:.45}
+.itemrow{display:grid;grid-template-columns:1fr 92px 34px;gap:8px;align-items:end;padding:10px 0;border-bottom:1px solid var(--line)}
+.itemrow .x{background:none;border:0;color:var(--bad);font-size:22px;padding-bottom:8px;cursor:pointer}
+.muted{color:var(--sub);font-size:13px}
+</style>
+</head>
+<body>
+<header><b id="team">TCSD1 Shooting Team</b><span class="role" id="role" hidden></span></header>
+<main id="app"><div class="center"><div class="spin"></div>กำลังโหลด…</div></main>
+
+<script>
+// ===== ค่าตั้ง (ไม่ใช่ความลับ) =====
+const CONFIG = {
+  LIFF_ID: '2012253563-eZxSvmeK',
+  API_URL: 'https://script.google.com/macros/s/AKfycbxwvYSnCuRe8LQMQs7MlGxSzsj0Y2K4p7gPoJCmjflJ0KnmpECopycWs1WKioW2kobq/exec',
+};
+const SHIRT = ['XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
+const ROLE_TH = {admin:'Admin', treasurer:'เหรัญญิก', member:'สมาชิก'};
+
+let S = {}; // state จาก bootstrap
+const $ = s => document.querySelector(s);
+const app = $('#app');
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function api(action, data) {
+  const res = await fetch(CONFIG.API_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify({action, idToken: liff.getIDToken(), data: data || {}}),
+  });
+  const j = await res.json();
+  if (!j.ok) {
+    if (/^AUTH/.test(j.error || '')) { liff.logout(); liff.login({redirectUri: location.href}); }
+    throw new Error(j.error || 'เกิดข้อผิดพลาด');
+  }
+  return j.data;
+}
+function loading(t){ app.innerHTML = `<div class="center"><div class="spin"></div>${esc(t||'กำลังบันทึก…')}</div>`; }
+function msg(type, text){ return `<div class="msg ${type}">${esc(text)}</div>`; }
+function view(){ return new URLSearchParams(location.search).get('view') || 'profile'; }
+function go(v){ history.replaceState(null,'','?view='+v); render(); }
+function opt(list, cur, blank){ return (blank?'<option value="">— เลือก —</option>':'') + list.map(x=>`<option ${x===cur?'selected':''}>${esc(x)}</option>`).join(''); }
+function closeOrHome(){ if (liff.isInClient()) liff.closeWindow(); else go('profile'); }
+
+async function boot(){
+  try {
+    await liff.init({liffId: CONFIG.LIFF_ID});
+    if (!liff.isLoggedIn()) { liff.login({redirectUri: location.href}); return; }
+    S = await api('bootstrap');
+    $('#team').textContent = S.teamName;
+    if (S.role) { $('#role').hidden = false; $('#role').textContent = ROLE_TH[S.role]; }
+    render();
+  } catch (e) {
+    app.innerHTML = msg('err', 'เปิดหน้าไม่สำเร็จ: ' + e.message) + '<button class="btn ghost" onclick="location.reload()">ลองใหม่</button>';
+  }
+}
+
+function render(){
+  const v = view();
+  if (v.startsWith('admin') && S.role !== 'admin') { app.innerHTML = msg('err','หน้านี้สำหรับ Admin เท่านั้น'); return; }
+  if (!S.role && v !== 'profile') { history.replaceState(null,'','?view=profile'); }
+  ({profile: renderProfile, equipment: renderEquipmentOnly, 'admin-members': renderAdminMembers,
+    'admin-equipment': renderAdminEquipment, 'admin-settings': renderAdminSettings}[view()] || renderProfile)();
+  window.scrollTo(0,0);
+}
+
+// ===================== สมัคร / ข้อมูลของฉัน =====================
+let step = 0;
+function steps(n){ return `<div class="steps">${[0,1,2,3].map(i=>`<span class="${i<=n?'on':''}"></span>`).join('')}</div>`; }
+
+function renderProfile(){
+  if (!S.role) step = Math.max(step, 0); else if (step === 0) step = 1;
+  [renderConsent, renderPersonal, renderFirearms, renderEquipment][step]();
+}
+
+function renderConsent(){
+  app.innerHTML = `${steps(0)}<h2>ความยินยอมตาม PDPA</h2>
+  <div class="card"><div class="consent">
+  <p><b>ผู้ควบคุมข้อมูล:</b> หัวหน้าทีม ${esc(S.teamName)} (Admin ของระบบ)</p>
+  <p><b>ข้อมูลที่เก็บ:</b> ชื่อ-นามสกุล (ไทย/อังกฤษ) ชื่อเล่น เบอร์โทร ผู้ติดต่อฉุกเฉิน ไซซ์เสื้อ ข้อมูลสมาชิก IDPA (เลขสมาชิก วันหมดอายุ Division Classification) ข้อมูลปืนที่ใช้แข่ง (ยี่ห้อ รุ่น ขนาดกระสุน Power Factor) รายการอุปกรณ์ และ LINE userId</p>
+  <p><b>ไม่เก็บ:</b> เลขหรือข้อมูลใบอนุญาตอาวุธปืน (ป.4 / ป.12)</p>
+  <p><b>วัตถุประสงค์:</b> บริหารทีมแข่งยิงปืน IDPA ได้แก่ การสมัครแข่ง การเตรียมอุปกรณ์ การนัดซ้อม การเบิกงบสนับสนุน การมอบรางวัล และการติดต่อกรณีฉุกเฉิน</p>
+  <p><b>ผู้เข้าถึงข้อมูล:</b> Admin เห็นข้อมูลทั้งหมด เหรัญญิกเห็นเฉพาะข้อมูลการเงิน สมาชิกคนอื่นไม่เห็นข้อมูลติดต่อของคุณ ข้อมูลเก็บใน Google Sheets ส่วนตัวที่ไม่แชร์ให้ผู้อื่น</p>
+  <p><b>ระยะเวลาเก็บ:</b> ตลอดที่เป็นสมาชิกทีม เมื่อออกจากทีมหรือถอนความยินยอม ระบบจะลบข้อมูลติดต่อและข้อมูลปืนภายใน 30 วัน โดยเก็บประวัติการเงินและผลการแข่งขันไว้เพื่อการตรวจสอบ</p>
+  <p><b>สิทธิ์ของคุณ:</b> ขอดู แก้ไข หรือขอลบข้อมูล และถอนความยินยอมได้ตลอดเวลาที่หน้า “ข้อมูลของฉัน” หรือแจ้ง Admin</p>
+  </div>
+  <label class="check" style="border:0;margin-top:8px"><input type="checkbox" id="agree"> ข้าพเจ้าอ่านและยินยอมให้เก็บและใช้ข้อมูลตามข้างต้น</label>
+  <button class="btn" id="next" disabled>ถัดไป</button></div>`;
+  $('#agree').onchange = e => $('#next').disabled = !e.target.checked;
+  $('#next').onclick = () => { S.consent = true; step = 1; renderProfile(); };
+}
+
+function renderPersonal(){
+  const m = S.me || {};
+  const f = (k, label, req, type) => `<label>${label}${req?' <span class="req">*</span>':''}</label><input id="f_${k}" type="${type||'text'}" value="${esc(m[k])}" ${req?'required':''}>`;
+  app.innerHTML = `${steps(1)}<h2>${S.role?'ข้อมูลของฉัน':'ข้อมูลส่วนตัว'}</h2>
+  <div id="m"></div>
+  ${tabsMine(0)}
+  <div class="card">
+    <div class="row"><div>${f('first_name_th','ชื่อ (ไทย)',1)}</div><div>${f('last_name_th','นามสกุล (ไทย)',1)}</div></div>
+    <div class="row"><div>${f('first_name_en','ชื่อ (อังกฤษ)')}</div><div>${f('last_name_en','นามสกุล (อังกฤษ)')}</div></div>
+    <div class="row"><div>${f('nickname','ชื่อเล่น',1)}</div><div>${f('phone','เบอร์โทร',1,'tel')}</div></div>
+    <div class="row"><div>${f('emergency_name','ผู้ติดต่อฉุกเฉิน')}</div><div>${f('emergency_phone','เบอร์ผู้ติดต่อฉุกเฉิน',0,'tel')}</div></div>
+    <label>ไซซ์เสื้อ</label><select id="f_shirt_size">${opt(SHIRT, m.shirt_size, 1)}</select>
+  </div>
+  <div class="card"><h3 style="margin-top:0">IDPA</h3>
+    <div class="row"><div>${f('idpa_number','เลขสมาชิก IDPA')}</div><div>${f('idpa_expiry','วันหมดอายุบัตร IDPA',0,'date')}</div></div>
+    <div class="row"><div><label>Division หลัก</label><select id="f_division">${opt(S.divisions, m.division, 1)}</select></div>
+    <div><label>Classification</label><select id="f_classification">${opt(S.classifications, m.classification, 1)}</select></div></div>
+  </div>
+  <button class="btn" id="save">${S.role?'บันทึก':'บันทึกและถัดไป'}</button>
+  ${S.role?'<button class="btn danger" id="withdraw">ถอนความยินยอม / ออกจากทีม</button>':''}`;
+  $('#save').onclick = async () => {
+    const data = {consent: true};
+    ['first_name_th','last_name_th','first_name_en','last_name_en','nickname','phone','emergency_name','emergency_phone','shirt_size','idpa_number','idpa_expiry','division','classification']
+      .forEach(k => data[k] = $('#f_'+k).value.trim());
+    if (!data.first_name_th || !data.last_name_th || !data.nickname || !data.phone) { $('#m').innerHTML = msg('err','กรุณากรอกช่องที่มี * ให้ครบ'); scrollTo(0,0); return; }
+    const was = S.role; loading();
+    try {
+      const r = await api('saveProfile', data);
+      S.me = r.me; S.role = r.role;
+      $('#role').hidden = false; $('#role').textContent = ROLE_TH[S.role];
+      S = Object.assign(S, await api('bootstrap'));
+      if (!was) { step = 2; renderProfile(); } else { renderPersonal(); $('#m').innerHTML = msg('ok','บันทึกแล้ว'); }
+    } catch (e) { renderPersonal(); $('#m').innerHTML = msg('err', e.message); }
+  };
+  if ($('#withdraw')) $('#withdraw').onclick = async () => {
+    if (!confirm('ยืนยันถอนความยินยอมและออกจากทีม?\nระบบจะลบข้อมูลติดต่อและข้อมูลปืนของคุณภายใน 30 วัน')) return;
+    loading();
+    try { const r = await api('withdrawConsent'); S.role = null; S.me = null; step = 0; $('#role').hidden = true;
+      app.innerHTML = msg('ok','ถอนความยินยอมแล้ว ข้อมูลจะถูกลบภายในวันที่ ' + r.deleteAfter) + '<p class="muted">หากต้องการกลับมาเป็นสมาชิก เปิดหน้านี้ใหม่และสมัครได้ทุกเมื่อ</p>';
+    } catch (e) { renderPersonal(); $('#m').innerHTML = msg('err', e.message); }
+  };
+}
+
+let guns = null;
+function renderFirearms(){
+  if (!guns) guns = (S.firearms || []).map(g => Object.assign({}, g));
+  if (!guns.length) guns.push({});
+  const card = (g, i) => `<div class="card gun"><button class="x" onclick="guns.splice(${i},1);renderFirearms()" title="ลบ">×</button>
+    <h3 style="margin-top:0">กระบอกที่ ${i+1}</h3>
+    <div class="row"><div><label>ยี่ห้อ</label><input data-i="${i}" data-k="brand" value="${esc(g.brand)}" placeholder="เช่น Glock"></div>
+    <div><label>รุ่น</label><input data-i="${i}" data-k="model" value="${esc(g.model)}" placeholder="เช่น 19 Gen5"></div></div>
+    <div class="row"><div><label>ขนาดกระสุน</label><input data-i="${i}" data-k="caliber" value="${esc(g.caliber)}" placeholder="เช่น 9mm"></div>
+    <div><label>ใช้ใน Division</label><select data-i="${i}" data-k="division">${opt(S.divisions, g.division, 1)}</select></div></div>
+    <div class="row"><div><label>Power Factor ล่าสุด</label><input data-i="${i}" data-k="power_factor" value="${esc(g.power_factor)}" inputmode="decimal"></div>
+    <div><label>วันที่วัด Chrono</label><input type="date" data-i="${i}" data-k="chrono_date" value="${esc(g.chrono_date)}"></div></div></div>`;
+  app.innerHTML = `${steps(2)}<h2>ปืนที่ใช้แข่ง</h2><div id="m"></div>
+  ${tabsMine(1)}
+  ${guns.map(card).join('')}
+  <button class="btn ghost" onclick="guns.push({});renderFirearms()">+ เพิ่มปืนอีกกระบอก</button>
+  <button class="btn" id="save">บันทึก${!(S.firearms||[]).length?'และถัดไป':''}</button>`;
+  app.querySelectorAll('[data-k]').forEach(el => el.oninput = el.onchange = e => guns[e.target.dataset.i][e.target.dataset.k] = e.target.value);
+  $('#save').onclick = async () => {
+    const first = !(S.firearms || []).length;
+    loading();
+    try { const r = await api('saveFirearms', {firearms: guns}); S.firearms = r.firearms; guns = null;
+      S = Object.assign(S, await api('bootstrap'));
+      if (first) { step = 3; renderProfile(); } else { renderFirearms(); $('#m').innerHTML = msg('ok','บันทึกแล้ว'); }
+    } catch (e) { renderFirearms(); $('#m').innerHTML = msg('err', e.message); }
+  };
+}
+
+function tabsMine(on){
+  if (!S.role) return '';
+  const t = ['ข้อมูลส่วนตัว','ปืน','อุปกรณ์'];
+  return `<div class="tabs">${t.map((x,i)=>`<a class="${i===on?'on':''}" onclick="step=${i+1};renderProfile()">${x}</a>`).join('')}${S.role==='admin'?'<a onclick="go(\'admin-members\')">หน้า Admin</a>':''}</div>`;
+}
+
+function equipmentList(){
+  const mine = S.items.filter(i => S.myItems.includes(i.id));
+  if (!mine.length) return msg('info','เลือก Division หลัก หรือเพิ่มปืนก่อน ระบบจะแสดงอุปกรณ์ที่ต้องใช้ตาม Division');
+  return `<div class="card">${mine.map(i => `<label class="check"><input type="checkbox" data-item="${i.id}" ${S.equipment[i.id]?'checked':''}>
+    <span>${esc(i.name)}${i.required?'<span class="tag req">จำเป็น</span>':'<span class="tag">แนะนำ</span>'}</span></label>`).join('')}</div>`;
+}
+async function saveEquip(after){
+  const eq = {};
+  app.querySelectorAll('[data-item]').forEach(el => eq[el.dataset.item] = el.checked);
+  loading();
+  try { await api('saveEquipment', {equipment: eq}); Object.assign(S.equipment, eq); after(null); }
+  catch (e) { after(e); }
+}
+function renderEquipment(){
+  app.innerHTML = `${steps(3)}<h2>เช็คลิสต์อุปกรณ์</h2><div id="m"></div>${tabsMine(2)}
+  <p class="muted">ติ๊กรายการที่คุณมีแล้ว ระบบจะเตือนรายการที่ขาดก่อนวันแข่ง</p>${equipmentList()}
+  <button class="btn" id="save">บันทึก</button>`;
+  $('#save').onclick = () => saveEquip(err => { renderEquipment(); $('#m').innerHTML = err ? msg('err', err.message) : msg('ok','บันทึกแล้ว ✓ ข้อมูลสมาชิกครบแล้ว'); });
+}
+function renderEquipmentOnly(){
+  if (!S.role) { go('profile'); return; }
+  app.innerHTML = `<h2>เช็คลิสต์อุปกรณ์</h2><div id="m"></div>
+  <p class="muted">Division: ${esc([S.me.division, ...(S.firearms||[]).map(f=>f.division)].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ') || '-')}</p>
+  ${equipmentList()}<button class="btn" id="save">บันทึก</button>`;
+  $('#save').onclick = () => saveEquip(err => { renderEquipmentOnly(); $('#m').innerHTML = err ? msg('err', err.message) : msg('ok','บันทึกแล้ว'); });
+}
+
+// ===================== Admin =====================
+function adminTabs(on){
+  const t = [['admin-members','สมาชิก'],['admin-equipment','สรุปอุปกรณ์'],['admin-settings','ตั้งค่าอุปกรณ์'],['profile','ข้อมูลของฉัน']];
+  return `<div class="tabs">${t.map(([v,x])=>`<a class="${v===on?'on':''}" onclick="step=1;go('${v}')">${x}</a>`).join('')}</div>`;
+}
+
+async function renderAdminMembers(){
+  app.innerHTML = `<h2>สมาชิกทั้งหมด</h2>${adminTabs('admin-members')}<div id="m"></div><div class="card" id="list"><div class="center"><div class="spin"></div></div></div>`;
+  try {
+    const r = await api('adminMembers');
+    const act = r.members.filter(m => m.active === 'TRUE').length;
+    $('#list').innerHTML = `<p class="muted" style="margin-top:0">สมาชิก ${act} คน${r.members.length>act?` (ออกแล้ว ${r.members.length-act})`:''}</p>` +
+      r.members.map(m => `<div class="mem ${m.active==='TRUE'?'':'inactive'}"><div class="info">
+        <b>${esc(m.nickname||'-')}</b> ${esc(m.first_name_th)} ${esc(m.last_name_th)}
+        <small>${esc(m.division||'-')} · ${esc(m.classification||'-')} · ${m.phone?`<a href="tel:${esc(m.phone)}" style="color:var(--mag)">${esc(m.phone)}</a>`:'-'}${m.emergency_phone?` · ฉุกเฉิน ${esc(m.emergency_name)} ${esc(m.emergency_phone)}`:''}${m.active==='TRUE'?'':' · ออกแล้ว'}</small></div>
+        ${m.active==='TRUE'?`<select data-id="${m.id}">${['member','treasurer','admin'].map(x=>`<option value="${x}" ${x===m.role?'selected':''}>${ROLE_TH[x]}</option>`).join('')}</select>`:''}</div>`).join('');
+    app.querySelectorAll('select[data-id]').forEach(sel => sel.onchange = async e => {
+      const el = e.target; el.disabled = true;
+      try { await api('setRole', {memberId: el.dataset.id, role: el.value}); $('#m').innerHTML = msg('ok','เปลี่ยนบทบาทแล้ว เมนูของสมาชิกคนนั้นจะเปลี่ยนตาม'); }
+      catch (err) { $('#m').innerHTML = msg('err', err.message); renderAdminMembers(); }
+      el.disabled = false;
+    });
+  } catch (e) { $('#list').innerHTML = msg('err', e.message); }
+}
+
+async function renderAdminEquipment(){
+  app.innerHTML = `<h2>สรุปอุปกรณ์ทั้งทีม</h2>${adminTabs('admin-equipment')}<div class="card" id="sum"><div class="center"><div class="spin"></div></div></div>`;
+  try {
+    const r = await api('adminEquipmentSummary');
+    const short = n => n.length > 10 ? n.slice(0, 9) + '…' : n;
+    const missing = r.rows.filter(x => x.missing.length);
+    $('#sum').innerHTML = `<p class="muted" style="margin-top:0">อุปกรณ์จำเป็นครบ ${r.rows.length - missing.length} / ${r.rows.length} คน</p>
+      <div class="tbl"><table><tr><th>สมาชิก</th>${r.items.map(i=>`<th title="${esc(i.name)}">${esc(short(i.name))}</th>`).join('')}</tr>
+      ${r.rows.map(x=>`<tr><td><b>${esc(x.name)}</b> <span class="muted">${esc(x.division||'')}</span></td>${r.items.map(i=> i.id in x.status ? (x.status[i.id]?'<td class="yes">✓</td>':`<td class="no">${i.required?'✗':'–'}</td>`) : '<td class="na">·</td>').join('')}</tr>`).join('')}
+      </table></div>
+      ${missing.length?`<h3>ขาดอุปกรณ์จำเป็น</h3>${missing.map(x=>`<p style="margin:4px 0"><b>${esc(x.name)}:</b> <span class="muted">${esc(x.missing.join(', '))}</span></p>`).join('')}`:'<p class="yes">ทุกคนมีอุปกรณ์จำเป็นครบ</p>'}`;
+  } catch (e) { $('#sum').innerHTML = msg('err', e.message); }
+}
+
+let items = null;
+function renderAdminSettings(){
+  if (!items) items = S.items.map(i => Object.assign({}, i));
+  app.innerHTML = `<h2>ตั้งค่ารายการอุปกรณ์</h2>${adminTabs('admin-settings')}<div id="m"></div>
+  <div class="card"><p class="muted" style="margin-top:0">Division: ใส่ ALL หรือคั่นด้วย , เช่น SSP,ESP,CCP<br>รายการที่มี: ${esc(S.divisions.join(', '))}</p>
+  ${items.map((it,i)=> it._delete ? '' : `<div class="itemrow"><div><label>ชื่ออุปกรณ์</label><input data-i="${i}" data-k="name" value="${esc(it.name)}">
+    <label>Division</label><input data-i="${i}" data-k="divisions" value="${esc(it.divisions||'ALL')}"></div>
+    <div><label class="check" style="border:0;padding:0;font-size:14px"><input type="checkbox" data-i="${i}" data-k="required" ${it.required?'checked':''}>จำเป็น</label></div>
+    <button class="x" title="ลบ" onclick="items[${i}]._delete=true;renderAdminSettings()">×</button></div>`).join('')}
+  <button class="btn ghost" onclick="items.push({name:'',divisions:'ALL',required:true});renderAdminSettings()">+ เพิ่มรายการ</button></div>
+  <button class="btn" id="save">บันทึก</button>`;
+  app.querySelectorAll('[data-k]').forEach(el => el.oninput = el.onchange = e => {
+    const t = e.target; items[t.dataset.i][t.dataset.k] = t.type === 'checkbox' ? t.checked : t.value; });
+  $('#save').onclick = async () => {
+    loading();
+    try { const r = await api('saveEquipmentItems', {items}); S.items = r.items; items = null;
+      S = Object.assign(S, await api('bootstrap')); renderAdminSettings(); $('#m').innerHTML = msg('ok','บันทึกแล้ว'); }
+    catch (e) { renderAdminSettings(); $('#m').innerHTML = msg('err', e.message); }
+  };
+}
+
+boot();
+</script>
+</body>
+</html>
