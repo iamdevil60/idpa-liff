@@ -101,6 +101,19 @@ textarea{width:100%;background:#0f0616;color:var(--txt);border:1px solid var(--l
 .dp-g button.sel{background:var(--mag);color:#fff;font-weight:700}
 .dp-f{display:flex;gap:6px;margin-top:10px}
 .dp-f button{flex:1}
+.rg{margin-bottom:10px}
+.rgh{font-weight:700;color:var(--mag);border-bottom:1px solid var(--line);padding:4px 0;margin-bottom:2px}
+.rr{display:flex;gap:10px;align-items:center;padding:6px 0}
+.rr .info{flex:1}.rr .info small{display:block;color:var(--sub)}
+.rr .x{background:none;border:0;color:var(--bad);font-size:22px;cursor:pointer}
+.pl{width:34px;height:34px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.pl.g{background:radial-gradient(circle at 35% 30%,#ffe68a,#d4a017);color:#3a2600}
+.pl.s{background:radial-gradient(circle at 35% 30%,#fff,#a9b3bf);color:#2b3138}
+.pl.b{background:radial-gradient(circle at 35% 30%,#ffc58f,#b8692b);color:#3b1c05}
+.pl.o{border:2px solid var(--mag);color:var(--mag)}
+.pl.dq{background:#3a0d18;color:var(--bad);font-size:12px}
+.addres{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.addres summary{color:var(--mag);cursor:pointer;font-weight:700}
 </style>
 </head>
 <body>
@@ -393,7 +406,7 @@ function evCard(e){
     ${e.myStatus?`<span class="mine ${e.myStatus}">${ST_TH[e.myStatus]}</span>`:''}</div>
     <b class="evtitle">${esc(e.title)}</b>
     <div class="muted">${esc(evDate(e))}${e.venue?' · '+esc(e.venue):''}</div>
-    <div class="muted" style="margin-top:4px">${evCount(e)}${e.myCheckedIn?' · <span class="yes">เช็คชื่อแล้ว ✓</span>':''}</div></div>`;
+    <div class="muted" style="margin-top:4px">${evCount(e)}${e.myCheckedIn?' · <span class="yes">เช็คชื่อแล้ว ✓</span>':''}${e.resultsCount?` · <span style="color:#ffd45c">🏆 ผลแข่ง ${e.resultsCount} รายการ</span>`:''}</div></div>`;
 }
 
 async function renderCalendar(past){
@@ -458,6 +471,8 @@ async function renderEvent(){
         <label class="ck"><input type="checkbox" data-att="${p.memberId}" ${p.checkedIn?'checked':''}>มา</label></div>`:''}</div>`).join('') : '<p class="muted">ยังไม่มีคนลงชื่อ</p>'}
   </div>
 
+  ${isMatch || e.resultsCount ? `<div class="card" id="results"><h3 style="margin-top:0">ผลการแข่งขัน</h3><div class="center" style="padding:16px 0"><div class="spin"></div></div></div>` : ''}
+
   ${admin ? `<div class="card"><h3 style="margin-top:0">Admin</h3>
     <label>เพิ่มชื่อ / เช็คชื่อแทนสมาชิก</label>
     <div class="row"><select id="addm"><option value="">— เลือกสมาชิก —</option>${r.allMembers.filter(m=>!ps.some(p=>p.memberId===m.id)).map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select>
@@ -500,6 +515,7 @@ async function renderEvent(){
     if (!confirm(active ? 'ยืนยันยกเลิกรายการนี้?' : 'เปิดรายการนี้อีกครั้ง?')) return;
     try { await api('setEventStatus', {id: e.id, status: active ? 'cancelled' : 'active'}); renderEvent(); } catch (err) { flash(err.message); }
   };
+  if ($('#results')) loadResults(e, r.allMembers, admin, flash);
 }
 
 async function renderEventEdit(){
@@ -607,6 +623,54 @@ function enhanceInputs(root){
   });
 }
 new MutationObserver(() => enhanceInputs(app)).observe(app, {childList: true, subtree: true});
+
+// ===================== ผลการแข่งขัน =====================
+const RCAT = [['division','อันดับรวม Division'],['class','อันดับใน Class'],['le','LE'],['lady','Lady'],['senior','Senior'],['award','รางวัลพิเศษ'],['dq','DQ']];
+const RCAT_TH = Object.fromEntries(RCAT);
+function resGroup(x){
+  if (x.category === 'division') return (x.division || '') + ' — อันดับรวม';
+  if (x.category === 'class') return (x.division || '') + ' ' + (x.classification || '');
+  return RCAT_TH[x.category] || x.category;
+}
+function placeBadge(p){
+  const n = Number(p); const c = n===1?'g':n===2?'s':n===3?'b':'o';
+  return `<span class="pl ${c}">${esc(p)}</span>`;
+}
+async function loadResults(e, allMembers, admin, flash){
+  const box = $('#results');
+  let rows = [];
+  try { rows = (await api('listResults', {eventId: e.id})).results; }
+  catch (err) { box.innerHTML = '<h3 style="margin-top:0">ผลการแข่งขัน</h3>' + msg('err', err.message); return; }
+  const groups = [];
+  rows.forEach(x => { const g = resGroup(x); let G = groups.find(y => y.name === g); if (!G) groups.push(G = {name: g, rows: []}); G.rows.push(x); });
+  box.innerHTML = `<h3 style="margin-top:0">ผลการแข่งขัน</h3>` + (groups.length ? groups.map(G => `<div class="rg"><div class="rgh">${esc(G.name)}</div>
+    ${G.rows.map(x => `<div class="rr">${x.category==='dq' ? '<span class="pl dq">DQ</span>' : x.category==='award' ? '<span class="pl g">★</span>' : placeBadge(x.place)}
+      <div class="info"><b>${esc(x.name)}</b>${x.category!=='class'&&x.division?` <span class="tag">${esc(x.division)}${x.classification?' '+esc(x.classification):''}</span>`:''}
+      ${x.award?`<small style="color:#ffd45c">${esc(x.award)}</small>`:''}${x.dqStage?`<small>Stage ${esc(x.dqStage)}</small>`:''}${x.notes?`<small>${esc(x.notes)}</small>`:''}</div>
+      ${admin?`<button class="x" data-del="${x.id}" title="ลบ">×</button>`:''}</div>`).join('')}</div>`).join('') : '<p class="muted">ยังไม่มีผลการแข่งขัน</p>')
+    + (admin ? `<details class="addres"><summary>+ เพิ่มผลการแข่งขัน</summary>
+      <label>สมาชิก</label><select id="r_m"><option value="">— ไม่ใช่สมาชิก / พิมพ์ชื่อเอง —</option>${allMembers.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select>
+      <label>ชื่อที่แสดง (ใส่ยศได้)</label><input id="r_n" placeholder="เช่น ร.ต.อ.ศุภกิจ">
+      <label>ประเภทผล</label><select id="r_c">${RCAT.map(([k,v])=>`<option value="${k}" ${k==='class'?'selected':''}>${v}</option>`).join('')}</select>
+      <div class="row"><div><label>Division</label><select id="r_d"><option value="">-</option>${S.divisions.map(d=>`<option>${d}</option>`).join('')}</select></div>
+      <div><label>Class</label><select id="r_k"><option value="">-</option>${S.classifications.map(d=>`<option>${d}</option>`).join('')}</select></div></div>
+      <div class="row"><div><label>อันดับ</label><input id="r_p" inputmode="numeric" placeholder="เช่น 3"></div>
+      <div><label>DQ ที่ Stage</label><input id="r_s" inputmode="numeric" placeholder="เฉพาะ DQ"></div></div>
+      <label>รางวัล / หมายเหตุรางวัล</label><input id="r_a" placeholder="เช่น Most Accurate, แชมเปี้ยนดิวิชั่น">
+      <button class="btn" id="r_save">บันทึกผล</button></details>` : '');
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    if (!confirm('ลบผลนี้?')) return;
+    try { await api('deleteResult', {id: b.dataset.del}); loadResults(e, allMembers, admin, flash); } catch (err) { flash(err.message); }
+  });
+  if ($('#r_m')) $('#r_m').onchange = () => { const m = allMembers.find(x => x.id === $('#r_m').value); if (m && !$('#r_n').value) $('#r_n').value = m.name; };
+  if ($('#r_save')) $('#r_save').onclick = async () => {
+    const result = {eventId: e.id, memberId: $('#r_m').value, name: $('#r_n').value, category: $('#r_c').value, division: $('#r_d').value,
+      classification: $('#r_k').value, place: $('#r_p').value, dqStage: $('#r_s').value, award: $('#r_a').value};
+    $('#r_save').disabled = true;
+    try { await api('saveResult', {result}); loadResults(e, allMembers, admin, flash); flash('บันทึกผลแล้ว', 1); }
+    catch (err) { flash(err.message); $('#r_save').disabled = false; }
+  };
+}
 
 boot();
 </script>
